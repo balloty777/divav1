@@ -1,13 +1,13 @@
 :root { --ink:#192122; --muted:#788080; --paper:#f8f5ee; --panel:#efeae0; --line:#ded8cb; --accent:#2f786c; --accent-dark:#20584f; --bubble:#e5f0eb; --white:#fffdfa; }
 * { box-sizing:border-box; }
-html,body { width:100%; height:100%; overflow:hidden; }
+html,body { width:100%; min-height:100%; overflow-x:hidden; }
 body { margin:0; color:var(--ink); background:var(--paper); font-family:"DM Sans",sans-serif; }
 html.app-active, body.app-active { width:100%; height:100%; overflow:hidden; overscroll-behavior:none; }
 button,input,textarea { font:inherit; }
 button { cursor:pointer; }
 .hidden { display:none!important; }
 .eyebrow { margin:0 0 10px; color:var(--accent); font:500 11px "DM Mono",monospace; letter-spacing:.12em; }
-.auth-screen { height:100%; min-height:100vh; overflow-y:auto; display:grid; grid-template-columns:1.08fr .92fr; }
+.auth-screen { min-height:100vh; display:grid; grid-template-columns:1.08fr .92fr; }
 .auth-copy { padding:12vw 10vw; background:radial-gradient(circle at 18% 18%,#d8ebe0 0,transparent 32%),linear-gradient(135deg,#24564f,#193f3b); color:#fbfaf4; }
 .auth-copy h1 { max-width:600px; margin:0; font:700 clamp(44px,6vw,82px)/.98 "Playfair Display",serif; }
 .auth-copy p:not(.eyebrow) { max-width:390px; margin-top:30px; color:#d7e5de; font-size:18px; line-height:1.65; }

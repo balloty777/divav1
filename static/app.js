@@ -1,4 +1,4 @@
-const state = { token: localStorage.getItem("mygpt_token"), conversations: [], activeConversation: null, authMode: "login" };
+const state = { token: localStorage.getItem("diva_token"), conversations: [], activeConversation: null, authMode: "login" };
 const $ = (selector) => document.querySelector(selector);
 const isUnauthorized = (error) => error?.status === 401;
 
@@ -166,7 +166,7 @@ function appendMessage(role, content) {
 function escapeHtml(value) { const element = document.createElement("div"); element.textContent = value || ""; return element.innerHTML; }
 function openModal() { $("#character-modal").classList.remove("hidden"); $("#character-name").focus(); }
 function closeModal() { $("#character-modal").classList.add("hidden"); $("#character-form").reset(); $("#character-error").textContent = ""; }
-function logout() { localStorage.removeItem("mygpt_token"); state.token = null; state.activeConversation = null; state.conversations = []; showAuth(); }
+function logout() { localStorage.removeItem("diva_token"); state.token = null; state.activeConversation = null; state.conversations = []; showAuth(); }
 
 $("#auth-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -175,7 +175,7 @@ $("#auth-form").addEventListener("submit", async (event) => {
   try {
     if (state.authMode === "signup") await api("/users/", { method: "POST", body: JSON.stringify({ email, password }) });
     const login = await api("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
-    state.token = login.access_token; localStorage.setItem("mygpt_token", state.token); showApp();
+    state.token = login.access_token; localStorage.setItem("diva_token", state.token); showApp();
   } catch (err) { error.textContent = err.message; }
 });
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => setAuthMode(tab.dataset.mode)));
