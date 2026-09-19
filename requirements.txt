@@ -10,3 +10,4 @@ pwdlib[argon2]
 langchain-core
 langchain-openai
 langgraph
+email-validator
