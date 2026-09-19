@@ -245,7 +245,6 @@ async function openConversation(chat) {
     const messages = await api(`/conversations/${chat.conversation_id}/messages/`);
     $("#messages").innerHTML = "";
     messages.forEach((message) => appendMessage(message.role, message.content));
-    if (!messages.length) appendMessage("assistant", `Hi, I’m ${chat.character_name || "here"}. What’s on your mind?`);
   } catch (error) {
     if (isUnauthorized(error)) { endExpiredSession(); return; }
     $("#messages").innerHTML = `<div class="empty-state"><p>${escapeHtml(error.message)}</p></div>`;
