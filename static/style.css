@@ -29,6 +29,7 @@ input:focus,textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px #c
 .form-error { min-height:20px; margin:10px 0 0; color:#ad3b35; font-size:13px; }
 .app-screen { position:fixed; inset:0; height:100dvh; overflow:hidden; }
 .sidebar { position:fixed; inset:0 auto 0 0; width:285px; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; padding:24px 14px 16px; background:#243534; color:#e9f1ec; }
+.sidebar-backdrop { display:none; }
 .brand { padding:0 10px 31px; font:700 23px "Playfair Display",serif; }
 .brand-mark { color:#a7d9c4; }
 .sidebar-label { margin:0 10px 10px; color:#9eb2ac; font:500 10px "DM Mono",monospace; letter-spacing:.12em; }
@@ -43,8 +44,18 @@ input:focus,textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px #c
 .logout { border:0; padding:8px 10px; color:#aebfba; background:transparent; text-align:left; font-size:13px; }
 .chat-area { position:fixed; inset:0 0 0 285px; min-width:0; min-height:0; overflow:hidden; display:flex; flex-direction:column; background:var(--paper); }
 .chat-header { display:flex; align-items:center; justify-content:space-between; padding:25px clamp(24px,5vw,70px); border-bottom:1px solid var(--line); }.chat-header h2 { font-size:24px; }.status-dot { color:#68aa91; font-size:16px; }
+.menu-toggle { display:none; }
 .messages { flex:1 1 0; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:34px clamp(24px,10vw,180px); }.message { display:flex; margin:13px 0; }.message.user { justify-content:flex-end; }.bubble { max-width:min(700px,78%); padding:13px 16px; border-radius:16px; line-height:1.55; white-space:pre-wrap; }.assistant .bubble { border:1px solid var(--line); border-top-left-radius:3px; background:var(--white); }.user .bubble { border-top-right-radius:3px; background:var(--bubble); }.typing .bubble { color:var(--muted); font-style:italic; }
 .empty-state { max-width:450px; margin:14vh auto; text-align:center; }.empty-icon { display:inline-grid; place-items:center; width:54px; height:54px; border-radius:50%; color:var(--accent); background:#dbeae2; font-size:24px; }.empty-state h2 { margin:18px 0 10px; }.empty-state p { color:var(--muted); line-height:1.6; margin:0 0 24px; }
 .composer { display:flex; gap:10px; align-items:end; padding:16px clamp(24px,5vw,70px) 22px; border-top:1px solid var(--line); background:#faf8f3; }.composer textarea { min-height:48px; max-height:160px; padding:13px 15px; resize:none; }.send { width:46px; height:46px; border:0; border-radius:50%; color:white; background:var(--accent); font-size:23px; }
 .modal { position:fixed; inset:0; display:grid; place-items:center; padding:20px; background:rgba(20,33,31,.55); backdrop-filter:blur(5px); }.modal-card { position:relative; width:min(560px,100%); max-height:92vh; overflow:auto; padding:34px; border-radius:16px; background:var(--paper); box-shadow:0 20px 70px #10232066; }.modal-card h2 { font-size:32px; }.close { position:absolute; top:15px; right:18px; border:0; color:var(--muted); background:transparent; font-size:27px; }
-@media (max-width:760px) { .auth-screen{grid-template-columns:1fr}.auth-copy{min-height:36vh;padding:50px 30px}.auth-copy h1{font-size:45px}.auth-card{padding:35px 26px}.sidebar{display:none}.chat-area{inset:0}.messages{padding:24px}.chat-header{padding:20px 24px}.composer{padding:14px 18px}.bubble{max-width:88%} }
+@media (max-width:760px) {
+  .auth-screen{grid-template-columns:1fr}.auth-copy{min-height:36vh;padding:50px 30px}.auth-copy h1{font-size:45px}.auth-card{padding:35px 26px}
+  .chat-area{inset:0}.messages{padding:24px}.chat-header{gap:14px;padding:18px 20px}.chat-header > div{min-width:0;flex:1}.chat-header h2{font-size:22px}.composer{padding:14px 18px}.bubble{max-width:88%}
+  .menu-toggle{width:42px;height:42px;flex:0 0 42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid var(--line);border-radius:10px;background:var(--white)}
+  .menu-toggle span{width:19px;height:2px;border-radius:2px;background:var(--ink)}
+  .sidebar{z-index:30;width:min(285px,85vw);display:flex;transform:translateX(-100%);transition:transform .22s ease;box-shadow:8px 0 28px #10232044}
+  .sidebar-backdrop{position:fixed;inset:0;z-index:20;display:block;visibility:hidden;opacity:0;border:0;background:#10232077;transition:opacity .22s ease,visibility .22s}
+  .app-screen.sidebar-open .sidebar{transform:translateX(0)}
+  .app-screen.sidebar-open .sidebar-backdrop{visibility:visible;opacity:1}
+}

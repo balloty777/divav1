@@ -71,6 +71,11 @@ function showAuth() {
   $("#app-screen").classList.add("hidden");
   $("#auth-screen").classList.remove("hidden");
 }
+function setSidebarOpen(isOpen) {
+  $("#app-screen").classList.toggle("sidebar-open", isOpen);
+  $("#menu-toggle").setAttribute("aria-expanded", String(isOpen));
+  $("#menu-toggle").setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+}
 function endExpiredSession() {
   logout();
   $("#auth-error").textContent = "Your session expired. Please sign in again.";
@@ -174,7 +179,12 @@ $("#auth-form").addEventListener("submit", async (event) => {
   } catch (err) { error.textContent = err.message; }
 });
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => setAuthMode(tab.dataset.mode)));
-$("#new-chat").onclick = openModal; $("#empty-new-chat").onclick = openModal; $("#close-modal").onclick = closeModal; $("#logout").onclick = logout;
+$("#new-chat").onclick = () => { setSidebarOpen(false); openModal(); };
+$("#empty-new-chat").onclick = openModal;
+$("#close-modal").onclick = closeModal;
+$("#logout").onclick = logout;
+$("#menu-toggle").onclick = () => setSidebarOpen(!$("#app-screen").classList.contains("sidebar-open"));
+$("#sidebar-backdrop").onclick = () => setSidebarOpen(false);
 
 $("#character-form").addEventListener("submit", async (event) => {
   event.preventDefault();

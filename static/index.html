@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/static/style.css?v=layout-20260918-4" />
+    <link rel="stylesheet" href="/static/style.css?v=mobile-menu-20260919-1" />
   </head>
   <body>
     <main id="auth-screen" class="auth-screen">
@@ -40,9 +40,13 @@
         <button id="new-chat" class="new-chat"><span>＋</span> Create new chat</button>
         <button id="logout" class="logout">Log out</button>
       </aside>
+      <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Close navigation"></button>
 
       <section class="chat-area">
         <header class="chat-header">
+          <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
           <div>
             <p class="eyebrow">PRIVATE CONVERSATION</p>
             <h2 id="chat-title">Choose a conversation</h2>
@@ -77,6 +81,6 @@
       </form>
     </div>
 
-    <script src="/static/app.js?v=layout-20260918-4"></script>
+    <script src="/static/app.js?v=mobile-menu-20260919-1"></script>
   </body>
 </html>
