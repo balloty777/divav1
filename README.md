@@ -1,6 +1,6 @@
-# MyGPT Roleplay
+# DivaV1
 
-MyGPT Roleplay is a FastAPI-powered character-chat application built for immersive, persistent conversations. Create a character from a natural-language description, talk to them in a browser, and let the app retain both the recent scene and longer-term story details.
+DivaV1 is a FastAPI-powered character-chat application built for immersive, persistent conversations. Create a character from a natural-language description, talk to them in a browser, and let the app retain both the recent scene and longer-term story details.
 
 The project combines a lightweight static frontend, PostgreSQL persistence, LangGraph orchestration, and OpenRouter-compatible language models.
 
