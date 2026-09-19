@@ -3,6 +3,13 @@
 DivaV1 is a FastAPI-powered character-chat application built for immersive, persistent conversations. Create a character from a natural-language description, talk to them in a browser, and let the app retain both the recent scene and longer-term story details.
 
 The project combines a lightweight static frontend, PostgreSQL persistence, LangGraph orchestration, and OpenRouter-compatible language models.
+<img width="1917" height="972" alt="image" src="https://github.com/user-attachments/assets/021c5908-5802-481d-8f51-7326d14691ca" />
+<img width="1917" height="975" alt="image" src="https://github.com/user-attachments/assets/4e71dd76-4082-4083-ad3f-4f587fe0ff92" />
+<img width="683" height="756" alt="image" src="https://github.com/user-attachments/assets/9a091cc0-f391-43e6-8576-87291071aa9d" />
+<img width="1917" height="973" alt="image" src="https://github.com/user-attachments/assets/0369e31a-fc34-4d9c-8cb5-f659a926fecb" />
+
+
+
 
 ## Features
 
