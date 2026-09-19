@@ -14,12 +14,15 @@ class CharacterService:
         self.character_repository = CharacterRepository(db)
         self.character_summary_repository = CharacterSummaryRepository(db)
         self.user_repository = UserRepository(db)
-    def create_character(self,creator_id: UUID,name: str) -> Character:
+    def create_character(self,creator_id: UUID,name: str,avatar_url: str | None = None) -> Character:
         user = self.user_repository.get_by_id(creator_id)
         if user is None:
             raise NotFoundException("User does not exist")
-        
-        character = self.character_repository.create_character(creator_id=creator_id,name=name)
+
+        # Characters are public as soon as they're created - no separate publish step.
+        character = self.character_repository.create_character(
+            creator_id=creator_id,name=name,status="active",avatar_url=avatar_url,
+        )
         try:
             self.db.commit()
             self.db.refresh(character)
@@ -32,6 +35,7 @@ class CharacterService:
         creator_id: UUID,
         name: str,
         summary: str,
+        avatar_url: str | None = None,
     ) -> Character:
         user = self.user_repository.get_by_id(creator_id)
         if user is None:
@@ -49,9 +53,12 @@ class CharacterService:
         )
         content = Characters(characters=[profile]).model_dump(mode="json")
 
+        # Characters are public as soon as they're created - no separate publish step.
         character = self.character_repository.create_character(
             creator_id=creator_id,
             name=name,
+            status="active",
+            avatar_url=avatar_url,
         )
         self.db.flush()
         self.character_summary_repository.create_character_summary(
@@ -76,13 +83,15 @@ class CharacterService:
         if user is None:
             raise NotFoundException("User does not exist")
         return self.character_repository.get_by_creator(creator_id=creator_id)
-    def update_character(self,creator_id:UUID,character_id: UUID,name: str) -> Character:
+    def get_public_characters(self) -> list[Character]:
+        return self.character_repository.get_public_characters()
+    def update_character(self,creator_id:UUID,character_id: UUID,name: str,avatar_url: str | None = None) -> Character:
         character = self.character_repository.get_by_id(character_id=character_id)
         if character is None:
             raise NotFoundException("Character does not exist")
         if creator_id!=character.creator_id:
             raise ForbiddenException("Not authorised")
-        character = self.character_repository.update_character(character=character,name=name)
+        character = self.character_repository.update_character(character=character,name=name,avatar_url=avatar_url)
         try:
             self.db.commit()
             self.db.refresh(character)

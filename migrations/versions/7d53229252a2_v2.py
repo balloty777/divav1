@@ -470,4 +470,3 @@ def downgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("conversation_id"),
     )
-    

@@ -1,4 +1,4 @@
-const state = { token: localStorage.getItem("diva_token"), conversations: [], activeConversation: null, authMode: "login" };
+const state = { token: localStorage.getItem("diva_token"), characters: [], conversations: [], activeConversation: null, authMode: "login", selectedAvatarFile: null };
 const $ = (selector) => document.querySelector(selector);
 const isUnauthorized = (error) => error?.status === 401;
 
@@ -58,18 +58,45 @@ async function streamChat(conversationId, query, onToken) {
   if (streamError) throw streamError;
 }
 
-function showApp() {
-  document.documentElement.classList.add("app-active");
-  document.body.classList.add("app-active");
-  $("#auth-screen").classList.add("hidden");
-  $("#app-screen").classList.remove("hidden");
-  loadConversations();
+async function uploadAvatar(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await fetch("/uploads/avatar", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${state.token}` },
+    body: formData,
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(payload?.detail || "Could not upload the image.");
+    error.status = response.status;
+    throw error;
+  }
+  return payload.avatar_url;
 }
-function showAuth() {
+
+function hideAllScreens() {
+  $("#auth-screen").classList.add("hidden");
+  $("#characters-screen").classList.add("hidden");
+  $("#app-screen").classList.add("hidden");
   document.documentElement.classList.remove("app-active");
   document.body.classList.remove("app-active");
-  $("#app-screen").classList.add("hidden");
+}
+function showAuth() {
+  hideAllScreens();
   $("#auth-screen").classList.remove("hidden");
+}
+function showCharacters() {
+  hideAllScreens();
+  $("#characters-screen").classList.remove("hidden");
+  loadCharacters();
+  loadConversations();
+}
+function showApp() {
+  hideAllScreens();
+  document.documentElement.classList.add("app-active");
+  document.body.classList.add("app-active");
+  $("#app-screen").classList.remove("hidden");
 }
 function setSidebarOpen(isOpen) {
   $("#app-screen").classList.toggle("sidebar-open", isOpen);
@@ -90,11 +117,79 @@ function setAuthMode(mode) {
   $("#auth-error").textContent = "";
 }
 
+function getCharacterBlurb(character) {
+  const profile = character.summary?.characters?.[0];
+  if (!profile) return "";
+  const text = profile.description || profile.personality || profile.backstory || profile.bio || profile.summary || "";
+  if (text.length <= 140) return text;
+  return `${text.slice(0, 140).trim()}…`;
+}
+
+function characterInitial(name) {
+  return (name || "?").trim().charAt(0).toUpperCase();
+}
+
+async function loadCharacters() {
+  const grid = $("#character-grid");
+  grid.innerHTML = '<div class="characters-loading">Loading characters…</div>';
+  try {
+    state.characters = await api("/characters/");
+    renderCharacterGrid();
+  } catch (error) {
+    if (isUnauthorized(error)) { endExpiredSession(); return; }
+    grid.innerHTML = `<div class="characters-loading">${escapeHtml(error.message)}</div>`;
+  }
+}
+
+function renderCharacterGrid() {
+  const grid = $("#character-grid");
+  grid.innerHTML = "";
+  if (!state.characters.length) {
+    grid.innerHTML = '<div class="characters-loading">No characters yet — create the first one.</div>';
+    return;
+  }
+  state.characters.forEach((character) => {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "character-card";
+    const blurb = getCharacterBlurb(character);
+    card.innerHTML = `
+      <div class="character-avatar">${character.avatar_url ? `
+        <img class="character-avatar-blur" src="${escapeHtml(character.avatar_url)}" alt="" aria-hidden="true" />
+        <img class="character-avatar-photo" src="${escapeHtml(character.avatar_url)}" alt="${escapeHtml(character.name)}" />
+      ` : characterInitial(character.name)}</div>
+      <h3>${escapeHtml(character.name)}</h3>
+      ${blurb ? `<p>${escapeHtml(blurb)}</p>` : ""}
+    `;
+    card.onclick = () => openCharacter(character);
+    grid.append(card);
+  });
+}
+
+async function openCharacter(character) {
+  try {
+    if (!state.conversations.length) {
+      state.conversations = await api("/conversations/");
+    }
+    let chat = state.conversations.find((item) => item.character_id === character.character_id);
+    if (!chat) {
+      const conversation = await api("/conversations/", { method: "POST", body: JSON.stringify({ character_id: character.character_id }) });
+      chat = { ...conversation, character_name: character.name, character_avatar_url: character.avatar_url };
+      state.conversations.unshift(chat);
+    }
+    showApp();
+    renderConversationList();
+    await openConversation(chat);
+  } catch (error) {
+    if (isUnauthorized(error)) { endExpiredSession(); return; }
+    alert(error.message);
+  }
+}
+
 async function loadConversations() {
   try {
     state.conversations = await api("/conversations/");
     renderConversationList();
-    if (!state.activeConversation && state.conversations.length) openConversation(state.conversations[0]);
   } catch (error) { if (isUnauthorized(error)) endExpiredSession(); }
 }
 
@@ -127,8 +222,8 @@ function renderConversationList() {
           state.activeConversation = null;
           $("#chat-title").textContent = "Choose a conversation";
           $("#composer").classList.add("hidden");
-          $("#messages").innerHTML = '<div class="empty-state"><span class="empty-icon">✦</span><h2>Start somewhere new.</h2><p>Create a chat and continue a story whenever you want.</p><button id="empty-new-chat" class="primary">Create a chat</button></div>';
-          $("#empty-new-chat").onclick = openModal;
+          $("#messages").innerHTML = '<div class="empty-state"><span class="empty-icon">✦</span><h2>Start somewhere new.</h2><p>Head back to the character list to pick up a story or meet someone new.</p><button id="empty-new-chat" class="primary">Browse characters</button></div>';
+          $("#empty-new-chat").onclick = showCharacters;
         }
         renderConversationList();
       } catch (error) {
@@ -157,16 +252,44 @@ async function openConversation(chat) {
   }
 }
 
+function getActiveCharacter() {
+  if (!state.activeConversation) return null;
+  return state.characters.find((character) => character.character_id === state.activeConversation.character_id) || null;
+}
+
+function createAssistantAvatar() {
+  const character = getActiveCharacter();
+  const avatarUrl = state.activeConversation?.character_avatar_url || character?.avatar_url;
+  const avatar = document.createElement("div");
+  avatar.className = "message-avatar";
+  if (avatarUrl) {
+    const image = document.createElement("img");
+    image.src = avatarUrl;
+    image.alt = "";
+    avatar.append(image);
+  } else {
+    avatar.textContent = characterInitial(state.activeConversation?.character_name || character?.name);
+  }
+  return avatar;
+}
+
 function appendMessage(role, content) {
   const item = document.createElement("div");
   item.className = `message ${role === "user" ? "user" : "assistant"}`;
   const bubble = document.createElement("div"); bubble.className = "bubble"; bubble.textContent = content;
+  if (role !== "user") item.append(createAssistantAvatar());
   item.append(bubble); $("#messages").append(item); $("#messages").scrollTop = $("#messages").scrollHeight;
 }
 function escapeHtml(value) { const element = document.createElement("div"); element.textContent = value || ""; return element.innerHTML; }
+function clearAvatarSelection() {
+  state.selectedAvatarFile = null;
+  $("#character-avatar-input").value = "";
+  $("#avatar-preview-img").src = "";
+  $("#avatar-preview").classList.add("hidden");
+}
 function openModal() { $("#character-modal").classList.remove("hidden"); $("#character-name").focus(); }
-function closeModal() { $("#character-modal").classList.add("hidden"); $("#character-form").reset(); $("#character-error").textContent = ""; }
-function logout() { localStorage.removeItem("diva_token"); state.token = null; state.activeConversation = null; state.conversations = []; showAuth(); }
+function closeModal() { $("#character-modal").classList.add("hidden"); $("#character-form").reset(); $("#character-error").textContent = ""; clearAvatarSelection(); }
+function logout() { localStorage.removeItem("diva_token"); state.token = null; state.activeConversation = null; state.conversations = []; state.characters = []; showAuth(); }
 
 $("#auth-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -175,14 +298,34 @@ $("#auth-form").addEventListener("submit", async (event) => {
   try {
     if (state.authMode === "signup") await api("/users/", { method: "POST", body: JSON.stringify({ email, password }) });
     const login = await api("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
-    state.token = login.access_token; localStorage.setItem("diva_token", state.token); showApp();
+    state.token = login.access_token; localStorage.setItem("diva_token", state.token); showCharacters();
   } catch (err) { error.textContent = err.message; }
 });
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => setAuthMode(tab.dataset.mode)));
-$("#new-chat").onclick = () => { setSidebarOpen(false); openModal(); };
-$("#empty-new-chat").onclick = openModal;
+$("#characters-new").onclick = openModal;
 $("#close-modal").onclick = closeModal;
+$("#avatar-remove").onclick = clearAvatarSelection;
+$("#character-avatar-input").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) { clearAvatarSelection(); return; }
+  if (file.size > 5 * 1024 * 1024) {
+    $("#character-error").textContent = "Image must be smaller than 5MB.";
+    event.target.value = "";
+    return;
+  }
+  $("#character-error").textContent = "";
+  state.selectedAvatarFile = file;
+  const reader = new FileReader();
+  reader.onload = () => {
+    $("#avatar-preview-img").src = reader.result;
+    $("#avatar-preview").classList.remove("hidden");
+  };
+  reader.readAsDataURL(file);
+});
 $("#logout").onclick = logout;
+$("#characters-logout").onclick = logout;
+$("#back-to-characters").onclick = () => { setSidebarOpen(false); showCharacters(); };
+$("#empty-new-chat").onclick = showCharacters;
 $("#menu-toggle").onclick = () => setSidebarOpen(!$("#app-screen").classList.contains("sidebar-open"));
 $("#sidebar-backdrop").onclick = () => setSidebarOpen(false);
 
@@ -191,17 +334,37 @@ $("#character-form").addEventListener("submit", async (event) => {
   const name = $("#character-name").value.trim(); const summary = $("#character-summary").value.trim(); const error = $("#character-error"); const button = $("#create-chat-submit");
   error.textContent = ""; button.disabled = true; button.textContent = "Creating…";
   try {
-    const character = await api("/characters/from-summary", { method: "POST", body: JSON.stringify({ name, summary }) });
+    let avatar_url = null;
+    if (state.selectedAvatarFile) {
+      button.textContent = "Uploading photo…";
+      avatar_url = await uploadAvatar(state.selectedAvatarFile);
+      button.textContent = "Creating…";
+    }
+    const character = await api("/characters/from-summary", { method: "POST", body: JSON.stringify({ name, summary, avatar_url }) });
     const conversation = await api("/conversations/", { method: "POST", body: JSON.stringify({ character_id: character.character_id }) });
-    const chat = { ...conversation, character_name: name };
-    state.conversations.unshift(chat); closeModal(); await openConversation(chat);
-  } catch (err) { error.textContent = err.message; } finally { button.disabled = false; button.textContent = "Create chat"; }
+    const chat = { ...conversation, character_name: name, character_avatar_url: character.avatar_url };
+    state.conversations.unshift(chat);
+    closeModal();
+    showApp();
+    renderConversationList();
+    await openConversation(chat);
+  } catch (err) {
+    if (isUnauthorized(err)) { endExpiredSession(); return; }
+    error.textContent = err.message;
+  } finally { button.disabled = false; button.textContent = "Create character"; }
 });
 
 $("#composer").addEventListener("submit", async (event) => {
   event.preventDefault(); const input = $("#message-input"); const query = input.value.trim(); if (!query || !state.activeConversation) return;
   input.value = ""; input.disabled = true; appendMessage("user", query);
-  const typing = document.createElement("div"); typing.className = "message assistant typing"; typing.innerHTML = '<div class="bubble">Thinking…</div>'; $("#messages").append(typing);
+  const typing = document.createElement("div");
+  typing.className = "message assistant typing";
+  typing.append(createAssistantAvatar());
+  const typingBubble = document.createElement("div");
+  typingBubble.className = "bubble";
+  typingBubble.textContent = "Thinking…";
+  typing.append(typingBubble);
+  $("#messages").append(typing);
   const bubble = typing.querySelector(".bubble"); let started = false;
   try {
     await streamChat(state.activeConversation.conversation_id, query, (token) => {
@@ -225,4 +388,4 @@ $("#message-input").addEventListener("keydown", (event) => {
   }
 });
 
-if (state.token) showApp(); else showAuth();
+if (state.token) showCharacters(); else showAuth();

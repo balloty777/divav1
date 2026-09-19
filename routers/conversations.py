@@ -27,6 +27,7 @@ def get_conversations(
             "conversation_id": conversation.conversation_id,
             "character_id": conversation.character_id,
             "character_name": conversation.character.name,
+            "character_avatar_url": conversation.character.avatar_url,
             "title": conversation.title,
             "updated_at": conversation.updated_at,
         }

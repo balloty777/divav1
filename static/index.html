@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/static/style.css?v=mobile-menu-20260919-1" />
+    <link rel="stylesheet" href="/static/style.css?v=character-summary-wrap-20260919-1" />
   </head>
   <body>
     <main id="auth-screen" class="auth-screen">
@@ -32,12 +32,28 @@
       </section>
     </main>
 
+    <main id="characters-screen" class="characters-screen hidden">
+      <header class="characters-header">
+        <div class="brand"><span class="brand-mark">✦</span> Diva</div>
+        <button id="characters-logout" class="logout">Log out</button>
+      </header>
+      <div class="characters-body">
+        <div class="characters-intro">
+          <p class="eyebrow">CHOOSE A CHARACTER</p>
+          <h1>Who do you want to talk to?</h1>
+          <p>Pick a character to pick up a story, or create someone new.</p>
+        </div>
+        <div id="character-grid" class="character-grid"></div>
+      </div>
+      <button id="characters-new" class="new-character-fab"><span>＋</span> Create new character</button>
+    </main>
+
     <main id="app-screen" class="app-screen hidden">
       <aside class="sidebar">
         <div class="brand"><span class="brand-mark">✦</span> Diva</div>
+        <button id="back-to-characters" class="back-to-characters">← Characters</button>
         <p class="sidebar-label">YOUR CHATS</p>
         <div id="chat-list" class="chat-list"></div>
-        <button id="new-chat" class="new-chat"><span>＋</span> Create new chat</button>
         <button id="logout" class="logout">Log out</button>
       </aside>
       <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Close navigation"></button>
@@ -57,8 +73,8 @@
           <div class="empty-state">
             <span class="empty-icon">✦</span>
             <h2>Start somewhere new.</h2>
-            <p>Create a chat, describe the character you want to meet, and begin the conversation.</p>
-            <button id="empty-new-chat" class="primary">Create a chat</button>
+            <p>Head back to the character list to pick up a story or meet someone new.</p>
+            <button id="empty-new-chat" class="primary">Browse characters</button>
           </div>
         </div>
         <form id="composer" class="composer hidden">
@@ -71,16 +87,23 @@
     <div id="character-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <form id="character-form" class="modal-card">
         <button id="close-modal" class="close" type="button" aria-label="Close">×</button>
-        <p class="eyebrow">NEW CONVERSATION</p>
+        <p class="eyebrow">NEW CHARACTER</p>
         <h2 id="modal-title">Who would you like to talk to?</h2>
-        <p>Give your character a name and a short description. You can include their personality, background, style, likes, and the kind of relationship you want.</p>
+        <p>Give your character a name and a short description. You can include their personality, background, style, likes, and the kind of relationship you want. Anyone can chat with this character once it's created.</p>
         <label>Character name <input id="character-name" required maxlength="100" placeholder="e.g. Luna Vale" /></label>
+        <label>Character photo <span class="label-optional">(optional)</span>
+          <input id="character-avatar-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+        </label>
+        <div id="avatar-preview" class="avatar-preview hidden">
+          <img id="avatar-preview-img" alt="Selected photo preview" />
+          <button type="button" id="avatar-remove" class="avatar-remove">Remove photo</button>
+        </div>
         <label>Character summary <textarea id="character-summary" required rows="7" placeholder="Luna is a witty bookshop owner with a love for mystery novels... "></textarea></label>
         <p id="character-error" class="form-error" aria-live="polite"></p>
-        <button id="create-chat-submit" class="primary full" type="submit">Create chat</button>
+        <button id="create-chat-submit" class="primary full" type="submit">Create character</button>
       </form>
     </div>
 
-    <script src="/static/app.js?v=mobile-menu-20260919-1"></script>
+    <script src="/static/app.js?v=character-card-contain-20260919-2"></script>
   </body>
 </html>

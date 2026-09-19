@@ -1,13 +1,13 @@
 from uuid import UUID
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from models.character import Character
 
 class CharacterRepository:
     def __init__(self, db: Session):
         self.db = db
-    def create_character(self,creator_id: UUID,name: str,status: str = "draft") -> Character:
-        character = Character(creator_id=creator_id,name=name,status=status)
+    def create_character(self,creator_id: UUID,name: str,status: str = "draft",avatar_url: str | None = None) -> Character:
+        character = Character(creator_id=creator_id,name=name,status=status,avatar_url=avatar_url)
         self.db.add(character)
         return character
     def get_by_id(self,character_id: UUID) -> Character | None:
@@ -16,8 +16,18 @@ class CharacterRepository:
     def get_by_creator(self,creator_id: UUID) -> list[Character]:
         stmt = (select(Character).where(Character.creator_id == creator_id).order_by(Character.created_at.desc()))
         return list(self.db.scalars(stmt).all())
-    def update_character(self,character: Character,name: str) -> Character:
+    def get_public_characters(self) -> list[Character]:
+        stmt = (
+            select(Character)
+            .where(Character.status == "active")
+            .options(joinedload(Character.character_summary))
+            .order_by(Character.created_at.desc())
+        )
+        return list(self.db.scalars(stmt).unique().all())
+    def update_character(self,character: Character,name: str,avatar_url: str | None = None) -> Character:
         character.name = name
+        if avatar_url is not None:
+            character.avatar_url = avatar_url
         return character
     def delete_character(self,character: Character,) -> None:
         self.db.delete(character)

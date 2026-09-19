@@ -16,6 +16,25 @@ router = APIRouter(
 )
 
 
+def _serialize_public(character) -> dict:
+    return {
+        "character_id": character.character_id,
+        "name": character.name,
+        "avatar_url": character.avatar_url,
+        "summary": character.character_summary.content if character.character_summary else None,
+    }
+
+
+@router.get("/")
+def list_public_characters(
+    db: Session = Depends(get_db),
+):
+    """Public, no-login-required list of chattable characters with their summaries."""
+    service = CharacterService(db)
+
+    return [_serialize_public(character) for character in service.get_public_characters()]
+
+
 @router.post("/from-summary")
 def create_character_from_summary(
     data: CharacterFromSummaryCreate,
@@ -26,6 +45,7 @@ def create_character_from_summary(
         creator_id=current_user.user_id,
         name=data.name,
         summary=data.summary,
+        avatar_url=data.avatar_url,
     )
 
 
@@ -40,6 +60,7 @@ def create_character(
     return service.create_character(
         creator_id=current_user.user_id,
         name=data.name,
+        avatar_url=data.avatar_url,
     )
 
 
@@ -68,6 +89,7 @@ def update_character(
         creator_id=current_user.user_id,
         character_id=character_id,
         name=data.name,
+        avatar_url=data.avatar_url,
     )
 
 
